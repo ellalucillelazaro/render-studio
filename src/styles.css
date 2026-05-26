@@ -146,10 +146,12 @@
 
   html, body {
     background-color: var(--color-background);
-    color: var(--color-foreground);
+    color: var(--sga-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  ::selection { background: var(--sga-red); color: #fff; }
 
   .font-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; }
   .font-mono { font-family: var(--font-mono); }
@@ -157,20 +159,43 @@
   .editorial-h1 {
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
     line-height: 0.95;
   }
 
   .label-eyebrow {
     font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
+    font-size: 10px;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--muted-foreground);
   }
 
   .hairline { border-color: var(--border); }
+  .surface { background-color: var(--sga-surface); }
+
+  /* Vitrine — outer hairline + 4px gutter + inner plate, with red L corner ticks */
+  .vitrine {
+    position: relative;
+    padding: 4px;
+    border: 1px solid var(--border);
+    background: var(--background);
+  }
+  .vitrine::before,
+  .vitrine::after {
+    content: "";
+    position: absolute;
+    width: 8px; height: 8px;
+    border: 0 solid var(--sga-red);
+  }
+  .vitrine::before { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
+  .vitrine::after  { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
+  .vitrine-inner {
+    border: 1px solid var(--border);
+    background: var(--sga-surface);
+  }
 }
 
 @font-face { font-display: swap; }
+
 
