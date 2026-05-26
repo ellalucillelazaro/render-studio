@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { SectionHeader, SectionBar, Vitrine, Btn, Field, TextInput, TextArea, Toggle, Pill } from "./primitives";
+import { SectionHeader, SectionBar, Vitrine, Field, TextInput, TextArea, Toggle, Pill } from "./primitives";
 import type { CleanupOptions, FirmPreset } from "@/lib/studio-types";
 import { DEFAULT_CLEANUP, DEFAULT_PRESETS } from "@/lib/studio-types";
 
