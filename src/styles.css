@@ -142,8 +142,33 @@
     border-color: var(--color-border);
   }
 
-  body {
+  html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
   }
+
+  .font-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; }
+  .font-mono { font-family: var(--font-mono); }
+
+  .editorial-h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+  }
+
+  .label-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .hairline { border-color: var(--border); }
 }
+
+@font-face { font-display: swap; }
+
