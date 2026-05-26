@@ -97,6 +97,8 @@
   --sidebar-ring: oklch(0.42 0.16 26);
 
   --sga-red: #8f201f;
+  --sga-ink: #1a1a1a;
+  --sga-surface: oklch(0.985 0 0); /* ~#fafafa — vitrine inner plate */
   --font-display: "Cormorant Garamond", "Times New Roman", serif;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
