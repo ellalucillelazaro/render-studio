@@ -1,5 +1,10 @@
 import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 
+/**
+ * Centered "Gallery Vitrine" section header.
+ * red square + eyebrow · large Cormorant title · centered subtitle ·
+ * optional `right` slot rendered centered below as a pill row.
+ */
 export function SectionHeader({
   num,
   title,
@@ -12,15 +17,62 @@ export function SectionHeader({
   right?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4 mb-8 pb-5 border-b hairline">
-      <div>
-        <div className="label-eyebrow mb-3">— {num}</div>
-        <h2 className="editorial-h1 text-[40px] md:text-[56px]">{title}</h2>
-        {subtitle && (
-          <p className="mt-3 text-sm text-muted-foreground max-w-xl">{subtitle}</p>
-        )}
+    <div className="text-center mb-12 md:mb-16">
+      <div className="flex justify-center items-center gap-2 mb-3">
+        <div className="w-1.5 h-1.5" style={{ backgroundColor: "var(--sga-red)" }} />
+        <div className="label-eyebrow">— {num} · Primary Module</div>
       </div>
-      {right}
+      <h2 className="editorial-h1 text-[44px] md:text-[64px] lg:text-[72px] mb-4">{title}</h2>
+      {subtitle && (
+        <p className="text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
+          {subtitle}
+        </p>
+      )}
+      {right && <div className="mt-6 flex justify-center">{right}</div>}
+    </div>
+  );
+}
+
+/**
+ * Section bar — eyebrow left, optional Cormorant italic count/label right,
+ * hairline below. Used between sub-sections inside a tab.
+ */
+export function SectionBar({
+  label,
+  meta,
+  action,
+}: {
+  label: string;
+  meta?: ReactNode;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between border-b hairline pb-2 mb-5">
+      <div className="flex items-center gap-3">
+        <div className="label-eyebrow">{label}</div>
+        {action}
+      </div>
+      {meta && <div className="font-display italic text-[15px]">{meta}</div>}
+    </div>
+  );
+}
+
+/**
+ * Vitrine — framed plate. Outer hairline + 4px gutter, inner hairline pane,
+ * tiny red L-shape corner ticks at top-left and bottom-right.
+ */
+export function Vitrine({
+  children,
+  className = "",
+  innerClassName = "",
+}: {
+  children: ReactNode;
+  className?: string;
+  innerClassName?: string;
+}) {
+  return (
+    <div className={`vitrine ${className}`}>
+      <div className={`vitrine-inner ${innerClassName}`}>{children}</div>
     </div>
   );
 }
@@ -31,11 +83,11 @@ interface BtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Btn({ variant = "outline", className = "", children, ...rest }: BtnProps) {
   const base =
-    "inline-flex items-center justify-center gap-2 px-5 h-11 font-mono text-[11px] tracking-[0.18em] uppercase transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center gap-2 px-5 h-10 font-mono text-[10px] tracking-[0.22em] uppercase transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
   const styles: Record<string, string> = {
     primary: "bg-foreground text-background hover:bg-foreground/85",
-    ghost: "text-foreground hover:bg-muted",
-    outline: "border hairline hover:bg-muted",
+    ghost: "text-muted-foreground hover:text-foreground",
+    outline: "border hairline hover:border-foreground hover:text-foreground",
     accent: "text-white",
   };
   const accentStyle = variant === "accent" ? { backgroundColor: "var(--sga-red)" } : undefined;
@@ -46,13 +98,7 @@ export function Btn({ variant = "outline", className = "", children, ...rest }: 
   );
 }
 
-export function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
       <div className="label-eyebrow mb-2">{label}</div>
@@ -93,12 +139,10 @@ export function Toggle({
       onClick={() => onChange(!checked)}
       className="flex items-center justify-between w-full py-3 border-b hairline text-left group"
     >
-      <span className="text-sm">{label}</span>
+      <span className="text-sm group-hover:text-foreground transition-colors">{label}</span>
       <span
-        className={`relative w-9 h-5 border hairline transition-colors ${
-          checked ? "" : "bg-background"
-        }`}
-        style={checked ? { backgroundColor: "var(--sga-red)", borderColor: "var(--sga-red)" } : undefined}
+        className={`relative w-9 h-5 border hairline transition-colors`}
+        style={checked ? { backgroundColor: "var(--sga-red)", borderColor: "var(--sga-red)" } : { backgroundColor: "var(--background)" }}
       >
         <span
           className={`absolute top-0.5 ${checked ? "right-0.5" : "left-0.5"} w-3.5 h-3.5 transition-all ${
@@ -122,7 +166,7 @@ export function Pill({
   return (
     <button
       onClick={onClick}
-      className={`px-4 h-9 font-mono text-[11px] tracking-[0.18em] uppercase border hairline transition-colors ${
+      className={`px-4 h-9 font-mono text-[10px] tracking-[0.22em] uppercase border hairline transition-colors ${
         active ? "text-white" : "hover:bg-muted"
       }`}
       style={active ? { backgroundColor: "var(--sga-red)", borderColor: "var(--sga-red)" } : undefined}
@@ -143,10 +187,7 @@ export function Banner({
 }) {
   const borderColor = tone === "warning" ? "var(--sga-red)" : "var(--border)";
   return (
-    <div
-      className="border-l-2 pl-5 py-4 bg-muted/40"
-      style={{ borderColor }}
-    >
+    <div className="border-l-2 pl-5 py-4 surface" style={{ borderColor }}>
       <div className="label-eyebrow mb-1" style={tone === "warning" ? { color: "var(--sga-red)" } : undefined}>
         {tone === "warning" ? "Backend Required" : "Note"}
       </div>
