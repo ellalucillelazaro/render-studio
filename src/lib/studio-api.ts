@@ -6,6 +6,34 @@ export function toAbsolute(url: string): string {
   return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
+/**
+ * Build a URL for GET /generated/{filename}.
+ * Accepts either a bare filename ("page-1.png") or a server-relative
+ * path ("/generated/page-1.png"); always returns an absolute URL.
+ */
+export function generatedUrl(filenameOrPath: string): string {
+  if (!filenameOrPath) return filenameOrPath;
+  if (/^https?:\/\//i.test(filenameOrPath)) return filenameOrPath;
+  if (filenameOrPath.startsWith("/")) return `${API_BASE}${filenameOrPath}`;
+  return `${API_BASE}/generated/${filenameOrPath}`;
+}
+
+/** Lightweight backend reachability probe. Does not throw. */
+export async function pingBackend(timeoutMs = 1500): Promise<boolean> {
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), timeoutMs);
+    // HEAD on root — most dev servers respond with something < 500.
+    const res = await fetch(`${API_BASE}/`, { method: "GET", signal: ctl.signal, mode: "cors" }).catch(
+      () => null,
+    );
+    clearTimeout(t);
+    return !!res; // any response, even 404, means the server is up
+  } catch {
+    return false;
+  }
+}
+
 export interface ExtractedSheetDTO {
   id: string;
   sheet: string;
