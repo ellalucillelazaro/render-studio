@@ -112,12 +112,10 @@ export function CleanTab({ activeSheet, setActiveSheet }: Props) {
             />
           </div>
 
-          {backendMissing && (
+          {error && (
             <div className="mt-6">
-              <Banner tone="warning" title="Backend required for cleanup processing">
-                The cleanup pipeline is not connected. Wire <span className="font-mono">POST /clean-image</span> to
-                process the source image with the selected options and return a PNG to
-                <span className="font-mono"> GET /generated/&#123;filename&#125;</span>.
+              <Banner tone="warning" title="Cleanup failed">
+                {error}. Ensure the backend is running at <span className="font-mono">http://localhost:8000</span> and that <span className="font-mono">POST /clean-image</span> is reachable.
               </Banner>
             </div>
           )}
