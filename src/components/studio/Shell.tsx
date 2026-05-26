@@ -1,10 +1,13 @@
 import { ReactNode } from "react";
+import { LogOut } from "lucide-react";
 
 type Tab = "extract" | "clean" | "settings";
 
 interface ShellProps {
   active: Tab;
   onChange: (t: Tab) => void;
+  userEmail?: string | null;
+  onLogout?: () => void;
   children: ReactNode;
 }
 
@@ -17,7 +20,7 @@ const TABS: { id: Tab; label: string; num: string }[] = [
 // Single restrained container width — vitrine, not dashboard
 const CONTAINER = "mx-auto w-full max-w-[1180px] px-5 sm:px-8 md:px-12";
 
-export function Shell({ active, onChange, children }: ShellProps) {
+export function Shell({ active, onChange, userEmail, onLogout, children }: ShellProps) {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="border-b hairline">
@@ -36,8 +39,29 @@ export function Shell({ active, onChange, children }: ShellProps) {
               </div>
             </div>
           </div>
-          <div className="font-mono text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
-            v 0.1 — Internal
+          <div className="flex items-center justify-end gap-4">
+            <div className="font-mono text-[9px] tracking-[0.2em] uppercase text-muted-foreground">
+              v 0.1 — Internal
+            </div>
+            {onLogout && (
+              <div className="flex items-center gap-3">
+                {userEmail && (
+                  <span className="hidden md:inline font-mono text-[9px] tracking-[0.18em] uppercase text-muted-foreground max-w-[220px] truncate">
+                    {userEmail}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="h-8 px-3 inline-flex items-center justify-center gap-2 border hairline font-mono text-[9px] tracking-[0.2em] uppercase text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
