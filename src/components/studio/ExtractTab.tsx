@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { SectionHeader, Btn, Banner } from "./primitives";
+import { SectionHeader, SectionBar, Vitrine, Btn, Banner } from "./primitives";
 import type { DrawingType, SheetRow, UploadedFile } from "@/lib/studio-types";
 import { extractPdf, pingBackend, toAbsolute, API_BASE } from "@/lib/studio-api";
 
@@ -110,162 +110,172 @@ export function ExtractTab({ files, sheets, onFiles, onSheets, onUseSheet }: Pro
         right={<BackendBadge status={backend} onRetry={refreshBackend} />}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 lg:gap-10">
-        <div>
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-              handleFiles(e.dataTransfer.files);
-            }}
-            onClick={() => inputRef.current?.click()}
-            className={`cursor-pointer border hairline aspect-[16/7] flex flex-col items-center justify-center text-center px-6 transition-colors ${
-              dragOver ? "bg-muted" : "bg-background hover:bg-muted/40"
-            }`}
-            style={dragOver ? { borderColor: "var(--sga-red)" } : undefined}
-          >
-            <div className="label-eyebrow mb-4">Drop / Browse</div>
-            <div className="font-display text-[28px] sm:text-[32px] md:text-[44px] leading-tight max-w-xl">
-              Drop a construction set or sheet exports here
-            </div>
-            <div className="mt-3 text-sm text-muted-foreground">
-              PDF · PNG · JPG &nbsp;—&nbsp; multi-file supported
-            </div>
-            <input
-              ref={inputRef}
-              type="file"
-              hidden
-              multiple
-              accept="application/pdf,image/png,image/jpeg"
-              onChange={(e) => handleFiles(e.target.files)}
-            />
-          </div>
-
-          {(pdfCount > 0 || imgCount > 0) && (
-            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1 label-eyebrow">
-              <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
-              <span>· {pdfCount} PDF</span>
-              <span>· {imgCount} Image</span>
-              <span>· {sheets.length} sheet{sheets.length === 1 ? "" : "s"} ready</span>
-            </div>
-          )}
-
-          {pdfLoading && (
-            <div className="mt-6 border hairline px-5 py-4 bg-muted/40 flex items-center gap-4">
-              <Spinner />
-              <div className="min-w-0">
-                <div className="label-eyebrow mb-1">Extracting via POST /extract-pdf</div>
-                <div className="text-sm truncate">{currentPdf}</div>
-              </div>
-            </div>
-          )}
-
-          {pdfError && (
-            <div className="mt-6">
-              <Banner tone="warning" title="PDF extraction unavailable">
-                {pdfError}. Image uploads are still previewed locally — PDF page extraction
-                requires the backend at <span className="font-mono">{API_BASE}</span>.
-                Endpoint: <span className="font-mono">POST /extract-pdf</span>.
-              </Banner>
-            </div>
-          )}
-
-          {!pdfLoading && !pdfError && backend === "offline" && pdfCount > 0 && (
-            <div className="mt-6">
-              <Banner tone="warning" title="Backend offline — PDFs queued locally">
-                The conversion service at <span className="font-mono">{API_BASE}</span> is not reachable.
-                Your uploaded files are preserved. Start the backend, then re-drop the PDFs
-                to extract sheets.
-              </Banner>
-            </div>
-          )}
+      {/* Vitrine drop zone — hero plate */}
+      <Vitrine className="mb-4">
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            handleFiles(e.dataTransfer.files);
+          }}
+          onClick={() => inputRef.current?.click()}
+          className={`cursor-pointer flex flex-col items-center justify-center text-center px-8 py-16 md:py-24 transition-colors ${
+            dragOver ? "bg-muted" : "hover:bg-background"
+          }`}
+        >
+          <div className="label-eyebrow mb-6">Drop / Browse</div>
+          <h3 className="font-display text-[28px] sm:text-[36px] md:text-[48px] leading-[1.05] max-w-[640px]">
+            Drop a construction set or sheet exports here
+          </h3>
+          <div className="h-px w-10 my-7" style={{ backgroundColor: "var(--sga-red)" }} />
+          <div className="label-eyebrow !text-[9px]">PDF · PNG · JPG — Multi-file supported</div>
+          <input
+            ref={inputRef}
+            type="file"
+            hidden
+            multiple
+            accept="application/pdf,image/png,image/jpeg"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
         </div>
+      </Vitrine>
 
-        <aside>
-          <div className="flex items-center justify-between mb-4">
-            <div className="label-eyebrow">Uploaded — {files.length}</div>
-            {files.length > 0 && (
+      {/* Live counters under vitrine */}
+      {(pdfCount > 0 || imgCount > 0) && (
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 mt-6 label-eyebrow !text-[9px]">
+          <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
+          <span className="opacity-30">·</span>
+          <span>{pdfCount} PDF</span>
+          <span className="opacity-30">·</span>
+          <span>{imgCount} Image</span>
+          <span className="opacity-30">·</span>
+          <span>{sheets.length} sheet{sheets.length === 1 ? "" : "s"} ready</span>
+        </div>
+      )}
+
+      {pdfLoading && (
+        <div className="mt-8 surface border hairline px-5 py-4 flex items-center gap-4 max-w-2xl mx-auto">
+          <Spinner />
+          <div className="min-w-0">
+            <div className="label-eyebrow mb-1">Extracting via POST /extract-pdf</div>
+            <div className="text-sm truncate">{currentPdf}</div>
+          </div>
+        </div>
+      )}
+
+      {pdfError && (
+        <div className="mt-8 max-w-2xl mx-auto">
+          <Banner tone="warning" title="PDF extraction unavailable">
+            {pdfError}. Image uploads are still previewed locally — PDF page extraction
+            requires the backend at <span className="font-mono">{API_BASE}</span>.
+            Endpoint: <span className="font-mono">POST /extract-pdf</span>.
+          </Banner>
+        </div>
+      )}
+
+      {!pdfLoading && !pdfError && backend === "offline" && pdfCount > 0 && (
+        <div className="mt-8 max-w-2xl mx-auto">
+          <Banner tone="warning" title="Backend offline — PDFs queued locally">
+            The conversion service at <span className="font-mono">{API_BASE}</span> is not reachable.
+            Your uploaded files are preserved. Start the backend, then re-drop the PDFs to extract sheets.
+          </Banner>
+        </div>
+      )}
+
+      {/* Uploaded files */}
+      <section className="mt-20">
+        <SectionBar
+          label={`Uploaded — ${String(files.length).padStart(2, "0")}`}
+          meta={files.length > 0 ? `${files.length} item${files.length === 1 ? "" : "s"}` : undefined}
+          action={
+            files.length > 0 ? (
               <button
                 onClick={() => onFiles([])}
                 className="label-eyebrow hover:text-foreground transition-colors"
               >
                 Reset
               </button>
-            )}
-          </div>
-          {files.length === 0 ? (
-            <div className="text-sm text-muted-foreground border hairline p-5">
+            ) : undefined
+          }
+        />
+        {files.length === 0 ? (
+          <div className="border hairline surface py-10 text-center">
+            <p className="font-display italic text-[15px] text-muted-foreground">
               Nothing uploaded yet.
-            </div>
-          ) : (
-            <ul className="border hairline divide-y divide-[color:var(--border)] max-h-[420px] overflow-y-auto">
-              {files.map((f) => (
-                <li key={f.id} className="px-4 py-3 flex items-center gap-3">
-                  <div className="w-10 h-10 border hairline overflow-hidden bg-muted shrink-0">
-                    {f.kind === "image" ? (
-                      <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full grid place-items-center font-mono text-[9px]" style={{ color: "var(--sga-red)" }}>
-                        PDF
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm truncate">{f.name}</div>
-                    <div className="label-eyebrow !text-[9px] mt-1">
-                      {f.kind.toUpperCase()} · {(f.size / 1024).toFixed(0)} KB
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
-      </div>
-
-      <div className="mt-16">
-        <div className="flex items-end justify-between mb-6 pb-4 border-b hairline gap-4 flex-wrap">
-          <div>
-            <div className="label-eyebrow mb-2">— Extracted Sheets</div>
-            <h3 className="font-display text-[28px] md:text-[36px]">
-              {sheets.length} drawing{sheets.length === 1 ? "" : "s"}
-            </h3>
-          </div>
-          {sheets.length > 0 && (
-            <Btn variant="ghost" onClick={() => onSheets([])}>
-              Clear All
-            </Btn>
-          )}
-        </div>
-
-        {sheets.length === 0 ? (
-          <div className="border hairline p-10 md:p-16 text-center">
-            <div className="font-display text-[22px] md:text-[28px] leading-tight max-w-md mx-auto">
-              Sheets will appear here after upload.
-            </div>
-            <div className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
-              Image uploads are surfaced immediately. PDFs are routed through
-              the conversion backend.
-            </div>
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <ul className="border hairline divide-y divide-[color:var(--border)]">
+            {files.map((f) => (
+              <li key={f.id} className="px-5 py-3 flex items-center gap-4 bg-background">
+                <div className="w-10 h-10 border hairline overflow-hidden surface shrink-0">
+                  {f.kind === "image" ? (
+                    <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div
+                      className="w-full h-full grid place-items-center font-mono text-[9px] tracking-widest"
+                      style={{ color: "var(--sga-red)" }}
+                    >
+                      PDF
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm truncate">{f.name}</div>
+                  <div className="label-eyebrow !text-[9px] mt-1">
+                    {f.kind.toUpperCase()} · {(f.size / 1024).toFixed(0)} KB
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Extracted sheets */}
+      <section className="mt-20">
+        <SectionBar
+          label="— Extracted Sheets"
+          meta={`${sheets.length} drawing${sheets.length === 1 ? "" : "s"}`}
+          action={
+            sheets.length > 0 ? (
+              <button
+                onClick={() => onSheets([])}
+                className="label-eyebrow hover:text-foreground transition-colors"
+              >
+                Clear
+              </button>
+            ) : undefined
+          }
+        />
+
+        {sheets.length === 0 ? (
+          <div className="border hairline surface py-16 md:py-24 text-center px-6">
+            <p className="font-display italic text-[22px] md:text-[26px] leading-tight max-w-md mx-auto mb-4">
+              Sheets will appear here after upload.
+            </p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground max-w-sm mx-auto">
+              Image uploads are surfaced immediately. PDFs are routed through the conversion backend.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {sheets.map((s, i) => (
-              <SheetCard key={s.id} sheet={s} index={i + 1} onUse={() => onUseSheet(s)} />
+              <SheetPlate key={s.id} sheet={s} index={i + 1} onUse={() => onUseSheet(s)} />
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
 
-function SheetCard({
+function SheetPlate({
   sheet,
   index,
   onUse,
@@ -276,36 +286,42 @@ function SheetCard({
 }) {
   const [broken, setBroken] = useState(false);
   return (
-    <article className="border hairline bg-background group flex flex-col">
-      <div className="relative aspect-[4/3] bg-muted overflow-hidden border-b hairline">
-        {sheet.thumbnailUrl && !broken ? (
-          <img
-            src={sheet.thumbnailUrl}
-            alt={sheet.title}
-            onError={() => setBroken(true)}
-            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-          />
-        ) : (
-          <div className="w-full h-full grid place-items-center label-eyebrow">
-            Preview unavailable
+    <article className="group">
+      <Vitrine>
+        <div className="relative aspect-[4/3] overflow-hidden">
+          {sheet.thumbnailUrl && !broken ? (
+            <img
+              src={sheet.thumbnailUrl}
+              alt={sheet.title}
+              onError={() => setBroken(true)}
+              className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-[1.02]"
+            />
+          ) : (
+            <div className="w-full h-full grid place-items-center label-eyebrow">
+              Preview unavailable
+            </div>
+          )}
+          <div className="absolute top-2 left-2 font-mono text-[9px] tracking-widest px-1.5 py-0.5 bg-background/95 border hairline">
+            PLT · {String(index).padStart(2, "0")}
           </div>
-        )}
-        <div className="absolute top-3 left-3 font-mono text-[10px] tracking-widest px-2 py-1 bg-background/90 border hairline">
-          {String(index).padStart(2, "0")}
         </div>
-      </div>
-      <div className="p-4 flex flex-col gap-3 flex-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <div className="font-mono text-[12px] tracking-widest" style={{ color: "var(--sga-red)" }}>
+      </Vitrine>
+      <div className="pt-4 px-1">
+        <div className="flex items-baseline justify-between gap-3 mb-1.5">
+          <div className="font-mono text-[10px] tracking-[0.22em]" style={{ color: "var(--sga-red)" }}>
             {sheet.sheetNumber}
           </div>
           <div className="label-eyebrow !text-[9px]">{sheet.drawingType}</div>
         </div>
-        <div className="font-display text-[20px] leading-tight line-clamp-2">{sheet.title}</div>
-        <div className="label-eyebrow !text-[9px] truncate mt-auto">{sheet.sourceFile}</div>
-        <Btn variant="accent" onClick={onUse} className="!h-10 w-full">
-          Use Sheet →
-        </Btn>
+        <h4 className="font-display text-[22px] leading-[1.15] line-clamp-2 mb-2">{sheet.title}</h4>
+        <div className="label-eyebrow !text-[9px] truncate mb-4">{sheet.sourceFile}</div>
+        <button
+          onClick={onUse}
+          className="w-full text-left flex items-center justify-between border-t hairline pt-3 font-mono text-[10px] tracking-[0.22em] uppercase hover:text-[color:var(--sga-red)] transition-colors"
+        >
+          <span>Use Sheet</span>
+          <span>→</span>
+        </button>
       </div>
     </article>
   );
@@ -313,18 +329,21 @@ function SheetCard({
 
 function BackendBadge({ status, onRetry }: { status: BackendStatus; onRetry: () => void }) {
   const map = {
-    checking: { label: "Checking backend…", color: "var(--muted-foreground)" },
-    online: { label: "Backend online", color: "oklch(0.55 0.15 145)" },
-    offline: { label: "Backend offline", color: "var(--sga-red)" },
+    checking: { label: "Checking backend", color: "var(--muted-foreground)", pulse: true },
+    online: { label: "Backend online", color: "oklch(0.55 0.15 145)", pulse: false },
+    offline: { label: "Backend offline", color: "var(--sga-red)", pulse: false },
   } as const;
   const m = map[status];
   return (
     <button
       onClick={onRetry}
       title={`${API_BASE} — click to retry`}
-      className="inline-flex items-center gap-2 px-3 h-9 border hairline font-mono text-[10px] tracking-widest uppercase hover:bg-muted transition-colors"
+      className="inline-flex items-center gap-2 px-3 h-8 border hairline font-mono text-[9px] tracking-[0.22em] uppercase hover:border-foreground transition-colors"
     >
-      <span className="w-2 h-2 rounded-full" style={{ background: m.color }} />
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${m.pulse ? "animate-pulse" : ""}`}
+        style={{ background: m.color }}
+      />
       {m.label}
     </button>
   );
