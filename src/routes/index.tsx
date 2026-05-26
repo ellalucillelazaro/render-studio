@@ -1,26 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Shell } from "@/components/studio/Shell";
+import { ExtractTab } from "@/components/studio/ExtractTab";
+import { CleanTab } from "@/components/studio/CleanTab";
+import { SettingsTab } from "@/components/studio/SettingsTab";
+import type { SheetRow, UploadedFile } from "@/lib/studio-types";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
 function Index() {
-  return <PlaceholderIndex />;
+  const [tab, setTab] = useState<"extract" | "clean" | "settings">("extract");
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [sheets, setSheets] = useState<SheetRow[]>([]);
+  const [activeSheet, setActiveSheet] = useState<SheetRow | null>(null);
+
+  return (
+    <Shell active={tab} onChange={setTab}>
+      {tab === "extract" && (
+        <ExtractTab
+          files={files}
+          sheets={sheets}
+          onFiles={setFiles}
+          onSheets={setSheets}
+          onUseSheet={(s) => {
+            setActiveSheet(s);
+            setTab("clean");
+          }}
+        />
+      )}
+      {tab === "clean" && <CleanTab activeSheet={activeSheet} setActiveSheet={setActiveSheet} />}
+      {tab === "settings" && <SettingsTab />}
+    </Shell>
+  );
 }
