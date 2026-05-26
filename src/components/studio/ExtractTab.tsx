@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { SectionHeader, Btn, Banner } from "./primitives";
-import type { SheetRow, UploadedFile } from "@/lib/studio-types";
+import type { DrawingType, SheetRow, UploadedFile } from "@/lib/studio-types";
+import { extractPdf, toAbsolute } from "@/lib/studio-api";
 
 interface Props {
   files: UploadedFile[];
@@ -13,13 +14,14 @@ interface Props {
 export function ExtractTab({ files, sheets, onFiles, onSheets, onUseSheet }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [pdfBlocked, setPdfBlocked] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
-  function handleFiles(list: FileList | null) {
+  async function handleFiles(list: FileList | null) {
     if (!list || list.length === 0) return;
     const next: UploadedFile[] = [];
     const newImageSheets: SheetRow[] = [];
-    let sawPdf = false;
+    const pdfFiles: File[] = [];
 
     Array.from(list).forEach((file, idx) => {
       const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
@@ -37,7 +39,7 @@ export function ExtractTab({ files, sheets, onFiles, onSheets, onUseSheet }: Pro
       next.push(uf);
 
       if (isPdf) {
-        sawPdf = true;
+        pdfFiles.push(file);
       } else {
         newImageSheets.push({
           id: uf.id,
@@ -50,10 +52,36 @@ export function ExtractTab({ files, sheets, onFiles, onSheets, onUseSheet }: Pro
       }
     });
 
-    if (sawPdf) setPdfBlocked(true);
     onFiles([...files, ...next]);
-    if (newImageSheets.length) onSheets([...sheets, ...newImageSheets]);
+    let accumulated = [...sheets, ...newImageSheets];
+    if (newImageSheets.length) onSheets(accumulated);
+
+    if (pdfFiles.length === 0) return;
+
+    setPdfError(null);
+    setPdfLoading(true);
+    try {
+      for (const pdf of pdfFiles) {
+        const dtos = await extractPdf(pdf);
+        const rows: SheetRow[] = dtos.map((d) => ({
+          id: `${pdf.name}::${d.id}`,
+          sourceFile: pdf.name,
+          sheetNumber: d.sheet,
+          title: d.title,
+          drawingType: (d.type as DrawingType) ?? "Unknown",
+          thumbnailUrl: toAbsolute(d.preview_url),
+        }));
+        accumulated = [...accumulated, ...rows];
+        onSheets(accumulated);
+      }
+    } catch (err) {
+      setPdfError(err instanceof Error ? err.message : "PDF extraction failed");
+    } finally {
+      setPdfLoading(false);
+    }
   }
+
+
 
   return (
     <div>
