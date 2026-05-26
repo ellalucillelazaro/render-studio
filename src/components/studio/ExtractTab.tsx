@@ -127,12 +127,13 @@ export function ExtractTab({ files, sheets, onFiles, onSheets, onUseSheet }: Pro
             />
           </div>
 
-          {pdfBlocked && (
+          {pdfLoading && (
+            <div className="mt-6 label-eyebrow">Extracting PDF via POST /extract-pdf …</div>
+          )}
+          {pdfError && (
             <div className="mt-6">
-              <Banner tone="warning" title="Backend required for PDF conversion">
-                PDF sheets are uploaded but not yet split into individual drawings. Connect the
-                backend endpoint <span className="font-mono">POST /extract-pdf</span> to convert
-                pages, run sheet-number OCR, and render thumbnails.
+              <Banner tone="warning" title="PDF extraction failed">
+                {pdfError}. Ensure the backend is running at <span className="font-mono">http://localhost:8000</span> and that <span className="font-mono">POST /extract-pdf</span> is reachable.
               </Banner>
             </div>
           )}
