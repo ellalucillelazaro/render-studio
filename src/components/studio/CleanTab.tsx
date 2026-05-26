@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { SectionHeader, Btn, Pill, Toggle, Banner } from "./primitives";
 import type { CleanupOptions, CleanupStrength, SheetRow } from "@/lib/studio-types";
 import { DEFAULT_CLEANUP } from "@/lib/studio-types";
+import { cleanImage } from "@/lib/studio-api";
 
 interface Props {
   activeSheet: SheetRow | null;
@@ -12,7 +13,8 @@ export function CleanTab({ activeSheet, setActiveSheet }: Props) {
   const [opts, setOpts] = useState<CleanupOptions>(DEFAULT_CLEANUP);
   const [cleaned, setCleaned] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [backendMissing, setBackendMissing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleUpload(files: FileList | null) {
@@ -20,6 +22,7 @@ export function CleanTab({ activeSheet, setActiveSheet }: Props) {
     const f = files[0];
     if (!f.type.startsWith("image/")) return;
     const url = URL.createObjectURL(f);
+    setUploadedFile(f);
     setActiveSheet({
       id: `direct-${Date.now()}`,
       sourceFile: f.name,
@@ -29,6 +32,7 @@ export function CleanTab({ activeSheet, setActiveSheet }: Props) {
       thumbnailUrl: url,
     });
     setCleaned(null);
+    setError(null);
   }
 
   function setOpt<K extends keyof CleanupOptions>(k: K, v: CleanupOptions[K]) {
@@ -38,21 +42,39 @@ export function CleanTab({ activeSheet, setActiveSheet }: Props) {
   async function runClean() {
     if (!activeSheet?.thumbnailUrl) return;
     setProcessing(true);
-    setBackendMissing(false);
-    // Simulate UX. Real call: POST /clean-image with image + opts.
-    await new Promise((r) => setTimeout(r, 700));
-    setBackendMissing(true);
-    setCleaned(activeSheet.thumbnailUrl); // show source as placeholder
-    setProcessing(false);
+    setError(null);
+    setCleaned(null);
+    try {
+      const url = await cleanImage({
+        file: uploadedFile ?? undefined,
+        imageUrl: uploadedFile ? undefined : activeSheet.thumbnailUrl,
+        options: opts,
+      });
+      setCleaned(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cleanup failed");
+    } finally {
+      setProcessing(false);
+    }
   }
 
-  function download() {
+  async function download() {
     if (!cleaned) return;
-    const a = document.createElement("a");
-    a.href = cleaned;
-    a.download = `${activeSheet?.sheetNumber ?? "sheet"}-cleaned.png`;
-    a.click();
+    try {
+      const res = await fetch(cleaned);
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = obj;
+      a.download = `${activeSheet?.sheetNumber ?? "sheet"}-cleaned.png`;
+      a.click();
+      URL.revokeObjectURL(obj);
+    } catch {
+      window.open(cleaned, "_blank");
+    }
   }
+
+
 
   const strengths: CleanupStrength[] = ["Light", "Standard", "Aggressive"];
 
